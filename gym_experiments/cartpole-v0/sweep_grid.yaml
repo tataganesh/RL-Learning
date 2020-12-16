@@ -1,0 +1,18 @@
+program: cartpole_simple.py
+method: grid
+metric:
+  goal: maximize
+  name: mean_reward
+parameters:
+  step_size:
+    values: [0.2, 0.5, 1]
+  epsilon:
+    value: 0.1
+  alpha_decay:
+    value: 0.997
+  epsilon_decay:
+    value: 0.999
+  random_seed:
+    values: [218, 563, 649, 999, 47, 210, 655, 14, 534, 556]
+  num_episodes:  
+    value: 1000

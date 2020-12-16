@@ -29,10 +29,14 @@
 ## Deep RL + CV
 * [DRL in CV](https://bardofcodes.github.io/DRL_in_CV/)
 
+## Real World RL
+* [Challenges of real world reinforcement learning](https://www.youtube.com/watch?v=lrhzjCaRbvw&feature=youtu.be)
+* [An empirical investigation of the challenges ofreal-world reinforcement learning](https://arxiv.org/pdf/2003.11881.pdf)
+* [RL for Real Life](https://www.rl4rl.com/)
+
 ## Blogs
 * [NEURALNET.AI](https://www.neuralnet.ai/category/reinforcement-learning/)
 * [Massimiliano Patacchiola](https://mpatacchiola.github.io/blog/)
-* [RL for Real Life](https://www.rl4rl.com/)
 
 ## Conference Videos
 * [Inductive Biases, Invariances and Generalization in Reinforcement Learning](https://slideslive.com/icml-2020/inductive-biases-invariances-and-generalization-in-reinforcement-learning)

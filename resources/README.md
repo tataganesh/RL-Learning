@@ -21,7 +21,8 @@
 * [DeepMind Reinforcement Learning Lectures (David Silver)](https://www.youtube.com/playlist?list=PLqYmG7hTraZDM-OYHWgPebj2MfCFzFObQ)
 * [Berkley Deep Reinforcement Learning (Sergey Levine)](https://www.youtube.com/watch?v=JHrlF10v2Og&list=PL_iWQOsE6TfURIIhCrlt-wj9ByIVpbfGc)
 * [IITM Reinforcement Learning Lectures (Balaraman Ravindran)](https://www.youtube.com/playlist?list=PLyqSpQzTE6M_FwzHFAyf4LSkz_IjMyjD9)
-* 
+* [Model-Based Method in Reinforcement Learning](https://icml.cc/virtual/2020/tutorial/5749)
+* [Causal Reinforcement Learning](https://icml.cc/virtual/2020/tutorial/5752)
 
 ## Deep RL
 * [OPENAI Spinning Up in Deep RL](https://spinningup.openai.com/en/latest/)
@@ -40,6 +41,10 @@
 
 ## Conference Videos
 * [Inductive Biases, Invariances and Generalization in Reinforcement Learning](https://slideslive.com/icml-2020/inductive-biases-invariances-and-generalization-in-reinforcement-learning)
+
+## DRL on the Edge
+
+* PoPS: Policy Pruning and Shrinking of Deep Reinforcement Learning for edge devices [[youtube]](https://www.youtube.com/watch?v=_6U8MyHm1OU) [[paper]](https://arxiv.org/pdf/2001.05012v1.pdf)
 
 ## Others
 * [AI Stackexchange](https://ai.stackexchange.com/questions/tagged/reinforcement-learning)

@@ -1,45 +1,47 @@
 import gym
 import numpy as np
+import argparse
 import matplotlib.pyplot as plt
-# import wandb
-from utils import Descretize
-
+import utils
+from collections import defaultdict
 env = gym.make('CartPole-v0')
 
 
-class qLearning:
-    def __init__(self, config, descretize_config):
-        
+class expectedSarsa:
+    def __init__(self, config, descretize_config, file_utils):
         self.NUM_EPISODES = config["num_episodes"]
         num_actions = env.action_space.n
         self.actions = range(0, num_actions)
         state_powers = descretize_config["state_powers"]
         num_bins = config["num_bins"]
         low, high = descretize_config["low"], descretize_config["high"]
-        self.descretizer = Descretize(num_bins, state_powers, env.observation_space, low, high)
-        
+        self.descretizer = utils.Descretize(num_bins, state_powers, env.observation_space, low, high)
         num_states_approx = int(sum(max(num_bins) ** power for power in state_powers))
         self.Q = np.zeros((num_states_approx, num_actions))
         self.step_size = config["step_size"]
         self.epsilon = config["epsilon"]
         self.random_gen = np.random.RandomState(config["random_seed"])
-        env.seed(config["random_seed"])
         self.alpha_decay = config["alpha_decay"]
         self.epsilon_decay = config["epsilon_decay"]
         self.optimal_count = 0
         self.normal_count  = 0
         self.max_time_steps = 500
+        self.file_utils = file_utils
+        self.data = defaultdict(list)
+        env.seed(config["random_seed"])
 
     def argmax(self, action_values):
         return self.random_gen.choice(np.flatnonzero(action_values == action_values.max()))
 
     def q_value_update(self, current_state, current_action, next_state, reward, done):
-        self.Q[current_state, current_action] += self.step_size * (reward + np.max(self.Q[next_state, :]) * (1 - done) - \
+        expected_return = 0
+        greedy_action = np.argmax(self.Q[next_state, :])
+        expected_return = (1 - self.epsilon) * self.Q[next_state, greedy_action] + self.epsilon * self.Q[next_state, 1 - greedy_action]
+        self.Q[current_state, current_action] += self.step_size * (reward + expected_return * (1 - done) - \
                                         self.Q[current_state, current_action])
 
     
     def policy(self, state):
-        action = None
         if self.random_gen.random() < self.epsilon:
             action = self.random_gen.choice(self.actions)
         else:
@@ -48,40 +50,47 @@ class qLearning:
         
     
     def train(self):
-        reward_history = list()
         for i_episode in range(self.NUM_EPISODES):
             observation = env.reset()
 
             current_state = self.descretizer.get_state_value(observation)
             for t in range(self.max_time_steps):
-                # env.render()
+                # if not i_episode % 100:
+                #     env.render()
                 action = self.policy(current_state)
                 observation, reward, done, info = env.step(action)
                 next_state = self.descretizer.get_state_value(observation)
                 self.q_value_update(current_state, action, next_state, reward, done)
                 current_state = next_state
                 if done:
-                    print(f"Episode {i_episode} finished after {t + 1} timesteps with {t + 1} reward")
-                    # wandb.log({"epsilon": self.epsilon})
+                    episode_reward = t + 1
+                    print(f"Episode {i_episode} finished after {t + 1} timesteps with {episode_reward} reward")
                     self.step_size = self.step_size * self.alpha_decay
                     self.epsilon = self.epsilon * self.epsilon_decay
-                    reward_history.append(t + 1)
+                    self.data["step_size"].append(self.step_size)
+                    self.data["epsilon"].append(self.epsilon)
+                    self.data['episode_reward'].append(episode_reward)
+                    self.data["mean_reward"].append(np.mean(self.data["episode_reward"]))
                     break
-            # wandb.log({"mean_reward_50": np.mean(reward_history[-50:]), "mean_reward": np.mean(reward_history), "Episode reward": reward_history[-1], "episode": i_episode})
             
-        print(f"Average reward - {np.mean(reward_history)}")
-        return reward_history
+        print(f"Average reward - {self.data['mean_reward'][-1]}")
+        self.file_utils.save(self.data)
+        return self.data['episode_reward']
         
-
-config = {"num_bins": [10, 10, 10, 10], "step_size": 0.1, "epsilon": 0.3, "random_seed": 100, "alpha_decay": 0.997, "epsilon_decay": 1, "num_episodes": 1000}
-
-def main():
-    # wandb.init(project="CartPole-v0_Q-Learning_State-Discretization", config = config)
+def run_agent(config_path):
+    run_config = utils.load_config(config_path)
+    config = run_config["agent_params"]
+    run_params = run_config["run_params"]
     descretize_config = {"low": [-2.4, -4, -0.5,-4], "high": [2.4, 2, 0.5, 2],  "state_powers": [1, 2, 3, 4]}
-    qLearningAgent = qLearning(config,descretize_config)
-    episode_rewards = qLearningAgent.train()
+    file_utils = utils.FileUtils(run_params["save_path"], run_params["name"])
+    file_utils.copy(config_path)
+    expectedSarsaAgent = expectedSarsa(config, descretize_config, file_utils)
+    episode_rewards = expectedSarsaAgent.train()
     env.close()
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Run agent based on config")
+    parser.add_argument("--config", help='Path to configuration file specifying run parameters', required=True)
+    args = parser.parse_args()
+    run_agent(args.config)

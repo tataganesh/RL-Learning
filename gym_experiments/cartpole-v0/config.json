@@ -1,0 +1,20 @@
+{
+    "agent_params" : {
+        "num_bins": [
+            10,
+            10,
+            10,
+            10
+        ],
+        "step_size": 0.5,
+        "epsilon": 0.1,
+        "random_seed": 500,
+        "alpha_decay": 0.997,
+        "epsilon_decay": 1,
+        "num_episodes": 1000
+    },
+    "run_params": {
+        "save_path": "expected_sarsa_runs",
+        "name": "test_run"
+    }
+}

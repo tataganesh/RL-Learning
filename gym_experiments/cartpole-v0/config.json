@@ -27,6 +27,6 @@
     },
     "run_params": {
         "save_path": "all_tilec_runs",
-        "name": "QLearning_throwaway"
+        "name": "QLearning_test"
     }
 }

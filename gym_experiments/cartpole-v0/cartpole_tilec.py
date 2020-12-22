@@ -70,10 +70,6 @@ class CartPoleWithTileC:
             for t in range(self.max_time_steps):
                 # if not i_episode % 100:
                 #   env.render()
-                # if i_episode == 99:
-                #     print(observation)
-                #     print(cur_action)
-                #     print(cur_state_action_val)
                 observation, reward, done, info = env.step(cur_action)
                 next_action = self.policy(observation)
                 next_state_action_val, next_tiles = self.get_td_update_value(observation, next_action)
@@ -101,27 +97,16 @@ class CartPoleWithTileC:
         global env
         env = gym.wrappers.Monitor(env, os.path.join(self.file_utils.run_path, 'cartpole_tilec_recording'))
         self.model.load(folder_path)
-        print(self.model.weights)
         self.epsilon = 0 # No Exploration            
         observation = env.reset()
         cur_action = self.policy(observation)
-        cur_state_action_val, cur_tiles = self.get_action_value(observation, cur_action)  
         for t in range(self.max_time_steps):
             env.render()
-            print(observation)
-            print(cur_action)
-            print(cur_state_action_val)
             observation, reward, done, info = env.step(cur_action)
-            next_action = self.policy(observation)
-            next_state_action_val, next_tiles = self.get_td_update_value(observation, next_action)
-            cur_action = next_action
-            cur_state_action_val = next_state_action_val
-            # cur_tiles = next_tiles
+            cur_action = self.policy(observation)
             if done:
                 print(f"Testing done. Total Reward - {t + 1}")
                 break
-        print(self.get_action_value(np.array([ 0.0834786, 1.58444511, -0.19113959, -2.50165705]), 1))
-        # env.monitor.close()
 
         
 def run_agent(config_path):
@@ -133,7 +118,7 @@ def run_agent(config_path):
     file_utils.copy(config_path)
     cartpoleAgent = CartPoleWithTileC(config, tile_coding_config, file_utils)
     episode_rewards = cartpoleAgent.train()
-    cartpoleAgent.test('/home/tata/Learn/RL/RL-Learning/gym_experiments/cartpole-v0/all_tilec_runs/QLearning_throwaway/regressors')
+    cartpoleAgent.test(os.path.join(file_utils.run_path, 'regressors'))
     env.close()
 
 

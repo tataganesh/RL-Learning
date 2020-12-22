@@ -2,11 +2,13 @@ from sklearn.linear_model import SGDRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.exceptions import NotFittedError
 import numpy as np
-
+import joblib
+from pathlib import Path
+import os
 
 
 class sklearnSGD:
-
+    JOBLIB_EXT = "joblib"
     def __init__(self, step_size, num_actions, feature_size, random_state = 0):
         self.regressors = [SGDRegressor(eta0=step_size, random_state=random_state)
                                 for _ in range(num_actions)]
@@ -45,14 +47,22 @@ class sklearnSGD:
         self.f_vec[tiles] = 0
         return res
 
+    def load(self, folder_path):
+        reg_paths = sorted((f for f in Path(folder_path).iterdir() if f.name.endswith(self.JOBLIB_EXT)), key=lambda k:int(k.stem.split("_")[-1]))
+        self.regressors = [joblib.load(str(p)) for p in reg_paths]
+        print(f"Loaded {reg_paths} successfully.")
 
 
+    def save(self, folder_path):
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
+        for action, regressor in enumerate(self.regressors):
+            joblib.dump(regressor, os.path.join(folder_path, f'action_value_regressor_{action}.{self.JOBLIB_EXT}'))
 
-class numpySGD:
-    pass
-    
 
-            
+# class numpySGD:
+#     pass
+          
 def sgd_factory(library):
     sgd_class_mapping = {"sklearn": sklearnSGD}
     return sgd_class_mapping[library]

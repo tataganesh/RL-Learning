@@ -66,7 +66,7 @@ class plottingUtils:
         data = dict()
         for file_path in Path(self.run_path).glob(self.NUMPY_EXTENSION):
             file_name = file_path.stem
-            data_value = np.load(file_path)
+            data_value = np.load(str(file_path))
             data[file_name] = data_value
         return data
 

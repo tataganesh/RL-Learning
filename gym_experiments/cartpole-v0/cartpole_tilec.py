@@ -5,10 +5,14 @@ import matplotlib.pyplot as plt
 import utils
 from collections import defaultdict
 from SGD import sgd_factory
+import os
 env = gym.make('CartPole-v0')
 
 
-class Sarsa:
+class CartPoleWithTileC:
+    SARSA = "sarsa"
+    ESARSA = "expected_sarsa"
+    QLEARNING = "qlearning"
     def __init__(self, config, tile_coding_config, file_utils):
         self.NUM_EPISODES = config["num_episodes"]
         num_actions = env.action_space.n
@@ -20,8 +24,6 @@ class Sarsa:
         self.random_gen = np.random.RandomState(config["random_seed"])
         self.alpha_decay = config["alpha_decay"]
         self.epsilon_decay = config["epsilon_decay"]
-        self.optimal_count = 0
-        self.normal_count  = 0
         self.max_time_steps = 500
         self.file_utils = file_utils
         self.data = defaultdict(list)
@@ -30,14 +32,22 @@ class Sarsa:
         sgd_reg = sgd_factory("sklearn")
         self.model = sgd_reg(self.step_size, num_actions, iht_size, random_state=config["random_seed"])
         self.feature_vector = np.zeros(iht_size)
+        self.td_update_algo = config["td_update_algo"]
 
     def argmax(self, action_values):
         return self.random_gen.choice(np.flatnonzero(action_values == action_values.max()))
 
-    def get_expected_return(self, observation):
-        pass
-
-
+    def get_td_update_value(self, observation, action):
+        if self.td_update_algo == self.SARSA:
+            return self.get_action_value(observation, action)
+        else:
+            tiles = self.tile_coder.get_tiles(observation)
+            greedy_action = np.argmax(np.array([self.get_action_value(observation, a)[0] for a in self.actions]))
+            if self.td_update_algo == self.ESARSA:
+                td_update_val = (1 - self.epsilon) * self.get_action_value(observation, greedy_action)[0] + self.epsilon * self.get_action_value(observation, 1 - greedy_action)[0]
+                return td_update_val, tiles
+            elif self.td_update_algo == self.QLEARNING:
+                return self.get_action_value(observation, greedy_action)[0], tiles
 
     def get_action_value(self, observation, action):
         tiles = self.tile_coder.get_tiles(observation)
@@ -52,7 +62,6 @@ class Sarsa:
             action = self.argmax(action_values)
         return action
         
-    
     def train(self):
         for i_episode in range(self.NUM_EPISODES):
             observation = env.reset()
@@ -61,15 +70,13 @@ class Sarsa:
             for t in range(self.max_time_steps):
                 # if not i_episode % 100:
                 #   env.render()
+                # if i_episode == 99:
+                #     print(observation)
+                #     print(cur_action)
+                #     print(cur_state_action_val)
                 observation, reward, done, info = env.step(cur_action)
                 next_action = self.policy(observation)
-                next_state_action_val, next_tiles = self.get_action_value(observation, next_action)
-                
-                # Expected SARSA
-                # greedy_action = np.argmax(np.array([self.get_action_value(observation, a)[0] for a in self.actions]))
-                # next_state_action_val = (1 - self.epsilon) * self.get_action_value(observation, greedy_action)[0] + self.epsilon * self.get_action_value(observation, 1 - greedy_action)[0]
-                # Q-Learning
-                # next_state_action_val = self.get_action_value(observation, greedy_action)[0]
+                next_state_action_val, next_tiles = self.get_td_update_value(observation, next_action)
                 self.model.update(cur_tiles, [reward + next_state_action_val * (1 - done)], cur_action)
                 cur_action = next_action
                 cur_state_action_val = next_state_action_val
@@ -83,22 +90,50 @@ class Sarsa:
                     print(f"Episode {i_episode} finished after {t + 1} timesteps with {episode_reward} reward, epsilon {self.epsilon}, mean reward {self.data['mean_reward'][-1]}")
                     self.step_size = self.step_size * self.alpha_decay
                     self.epsilon = self.epsilon * self.epsilon_decay
-
                     break
             
         print(f"Average reward - {self.data['mean_reward'][-1]}")
         self.file_utils.save(self.data)
+        self.model.save(os.path.join(self.file_utils.run_path, "regressors"))
         return self.data['episode_reward']
+
+    def test(self, folder_path):
+        global env
+        env = gym.wrappers.Monitor(env, os.path.join(self.file_utils.run_path, 'cartpole_tilec_recording'))
+        self.model.load(folder_path)
+        print(self.model.weights)
+        self.epsilon = 0 # No Exploration            
+        observation = env.reset()
+        cur_action = self.policy(observation)
+        cur_state_action_val, cur_tiles = self.get_action_value(observation, cur_action)  
+        for t in range(self.max_time_steps):
+            env.render()
+            print(observation)
+            print(cur_action)
+            print(cur_state_action_val)
+            observation, reward, done, info = env.step(cur_action)
+            next_action = self.policy(observation)
+            next_state_action_val, next_tiles = self.get_td_update_value(observation, next_action)
+            cur_action = next_action
+            cur_state_action_val = next_state_action_val
+            # cur_tiles = next_tiles
+            if done:
+                print(f"Testing done. Total Reward - {t + 1}")
+                break
+        print(self.get_action_value(np.array([ 0.0834786, 1.58444511, -0.19113959, -2.50165705]), 1))
+        # env.monitor.close()
+
         
 def run_agent(config_path):
     run_config = utils.load_config(config_path)
     config = run_config["agent_params"]
     run_params = run_config["run_params"]
-    tile_coding_config = {"low": [-3.4, -7, -1,-4], "high": [3.4, 7, 1, 4], "num_tilings": 16, "num_tiles": 8, "iht": 4096}
+    tile_coding_config = run_config["tile_coding_params"]
     file_utils = utils.FileUtils(run_params["save_path"], run_params["name"])
     file_utils.copy(config_path)
-    expectedSarsaAgent = Sarsa(config, tile_coding_config, file_utils)
-    episode_rewards = expectedSarsaAgent.train()
+    cartpoleAgent = CartPoleWithTileC(config, tile_coding_config, file_utils)
+    episode_rewards = cartpoleAgent.train()
+    cartpoleAgent.test('/home/tata/Learn/RL/RL-Learning/gym_experiments/cartpole-v0/all_tilec_runs/QLearning_throwaway/regressors')
     env.close()
 
 

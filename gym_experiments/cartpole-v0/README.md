@@ -16,3 +16,16 @@
 
    `pytest test_cartpole_simple.py::TestCartpoleDescreteExpectedSarsa`
 
+
+
+# Linear Function Approximation with Tile Coding
+
+* Q-Learning
+
+    ![Q-Learning test gif](recordings/cartpole_qlearning.gif)
+
+* SARSA
+
+    ![SARSA test gif](recordings/cartpole_sarsa.gif)
+
+

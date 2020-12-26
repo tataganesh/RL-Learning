@@ -37,42 +37,42 @@ class CartPoleWithTileC:
     def argmax(self, action_values):
         return self.random_gen.choice(np.flatnonzero(action_values == action_values.max()))
 
-    def get_td_update_value(self, observation, action):
+    def get_td_update_value(self, tiles, action):
         if self.td_update_algo == self.SARSA:
-            return self.get_action_value(observation, action)
+            return self.get_action_value(tiles, action)
         else:
-            tiles = self.tile_coder.get_tiles(observation)
-            greedy_action = np.argmax(np.array([self.get_action_value(observation, a)[0] for a in self.actions]))
+            greedy_action = np.argmax(np.array([self.get_action_value(tiles, a) for a in self.actions]))
             if self.td_update_algo == self.ESARSA:
-                td_update_val = (1 - self.epsilon) * self.get_action_value(observation, greedy_action)[0] + self.epsilon * self.get_action_value(observation, 1 - greedy_action)[0]
-                return td_update_val, tiles
+                td_update_val = (1 - self.epsilon) * self.get_action_value(tiles, greedy_action) + self.epsilon * self.get_action_value(tiles, 1 - greedy_action)
+                return td_update_val
             elif self.td_update_algo == self.QLEARNING:
-                return self.get_action_value(observation, greedy_action)[0], tiles
+                return self.get_action_value(tiles, greedy_action)
 
-    def get_action_value(self, observation, action):
-        tiles = self.tile_coder.get_tiles(observation)
+    def get_action_value(self, tiles, action):
         action_value = self.model.run(tiles, action) 
-        return action_value, tiles
+        return action_value
     
-    def policy(self, observation):
+    def policy(self, tiles):
         if self.random_gen.random() < self.epsilon:
             action = self.random_gen.choice(self.actions)
         else:
-            action_values = np.array([self.get_action_value(observation, a)[0] for a in self.actions])
+            action_values = np.array([self.get_action_value(tiles, a) for a in self.actions])
             action = self.argmax(action_values)
         return action
         
     def train(self):
         for i_episode in range(self.NUM_EPISODES):
             observation = env.reset()
-            cur_action = self.policy(observation)
-            cur_state_action_val, cur_tiles = self.get_action_value(observation, cur_action)  
+            cur_tiles = self.tile_coder.get_tiles(observation) 
+            cur_action = self.policy(cur_tiles)
+            cur_state_action_val = self.get_action_value(cur_tiles, cur_action)  
             for t in range(self.max_time_steps):
                 # if not i_episode % 100:
                 #   env.render()
                 observation, reward, done, info = env.step(cur_action)
-                next_action = self.policy(observation)
-                next_state_action_val, next_tiles = self.get_td_update_value(observation, next_action)
+                next_tiles = self.tile_coder.get_tiles(observation)
+                next_action = self.policy(next_tiles)
+                next_state_action_val = self.get_td_update_value(next_tiles, next_action)
                 self.model.update(cur_tiles, [reward + next_state_action_val * (1 - done)], cur_action)
                 cur_action = next_action
                 cur_state_action_val = next_state_action_val
@@ -95,15 +95,15 @@ class CartPoleWithTileC:
 
     def test(self, folder_path):
         global env
-        env = gym.wrappers.Monitor(env, os.path.join(self.file_utils.run_path, 'cartpole_tilec_recording'))
+        env = gym.wrappers.Monitor(env, os.path.join(self.file_utils.run_path, 'cartpole_tilec_recording'), force=True)
         self.model.load(folder_path)
         self.epsilon = 0 # No Exploration            
         observation = env.reset()
-        cur_action = self.policy(observation)
+        cur_action = self.policy(self.tile_coder.get_tiles(observation))
         for t in range(self.max_time_steps):
             env.render()
             observation, reward, done, info = env.step(cur_action)
-            cur_action = self.policy(observation)
+            cur_action = self.policy(self.tile_coder.get_tiles(observation))
             if done:
                 print(f"Testing done. Total Reward - {t + 1}")
                 break

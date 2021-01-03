@@ -29,3 +29,13 @@
     ![SARSA test gif](recordings/cartpole_sarsa.gif)
 
 
+
+
+# Sweep Example
+
+* Run sweep with config (TODO: Pass config as command-line argument)
+
+   ` python3 sweep.py `
+* Visualize results of a sweep
+
+   ` python3 plotting.py --sweep_path=/home/tata/Learn/RL/RL-Learning/gym_experiments/cartpole-v0/sweeps/random_seed_sweep_qlearning_tilec `

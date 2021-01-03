@@ -7,6 +7,7 @@ import glob
 from pathlib import Path
 import matplotlib.pyplot as plt
 import tilecoder
+import random
 class Descretize:
     def __init__(self, num_bins, state_powers, observation_space, low=None, high=None):
         # low = observation_space.low
@@ -52,10 +53,15 @@ class FileUtils:
         dest_path = os.path.join(self.run_path, file_name)
         shutil.copyfile(file_path, dest_path)
 
+    def save_json(self, obj, name):
+        file_path = os.path.join(self.run_path, name)
+        with open(file_path, 'w') as fp:
+            json.dump(obj, fp)
+
 class plottingUtils:
     NUMPY_EXTENSION = "*.npy"
     PLOTS_DIR = "plots"
-    def __init__(self, run_path, save):
+    def __init__(self, run_path):
         if not os.path.exists(run_path):
             raise Exception(f"{run_path} does not exist")
         self.run_path = run_path
@@ -89,6 +95,35 @@ class TileCoderFeature:
         scaled_values = [((inp[i] - self.low[i]) / (self.high[i] - self.low[i])) * self.num_tiles for i in range(len(inp))]
         # scaled_values = [(inp[i] / (self.high[i] - self.low[i])) * self.num_tiles for i in range(len(inp))]
         return tilecoder.tiles(self.iht, self.num_tilings, scaled_values)
+
+class Replay:
+    # Currently only for expected SARSA and Q-Learning
+
+    def __init__(self, buffer_size, sample_size, planning_steps, random_gen):
+        
+        self.buffer_size = buffer_size
+        self.sample_size = sample_size
+        self.planning_steps = planning_steps
+        self.buffer = []
+        self.random_gen = random_gen
+
+    def planning(self, agent, learning_model):
+        
+        for step in range(self.planning_steps):
+            experience_idx = np.unique(self.random_gen.randint(low=0, high=len(self.buffer), size=self.sample_size))
+            for i in experience_idx:
+                state, action, next_state, reward, is_terminal = self.buffer[i]
+                next_state_action_val = agent.get_td_update_value(next_state, None) # Planning only for expected SARSA and Q-Learning
+                learning_model.update(state, [reward + next_state_action_val * (1 - is_terminal)], action)
+        return learning_model
+
+    def append(self, state, action, next_state, reward, is_terminal):
+        experience = [state, action, next_state, reward, is_terminal]
+        if len(self.buffer) == self.buffer_size:
+            self.buffer[-1] = experience
+        else:
+            self.buffer.append(experience)
+
 
     
 

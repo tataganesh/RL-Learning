@@ -33,6 +33,11 @@ class CartPoleWithTileC:
         self.model = sgd_reg(self.step_size, num_actions, iht_size, random_state=config["random_seed"])
         self.feature_vector = np.zeros(iht_size)
         self.td_update_algo = config["td_update_algo"]
+        self.plan = False
+        if "planning_config" in config:
+            planning_config = config["planning_config"]
+            self.plan = True
+            self.planner = utils.Replay(planning_config["buffer_size"], planning_config["sample_size"], planning_config["steps"], self.random_gen)
 
     def argmax(self, action_values):
         return self.random_gen.choice(np.flatnonzero(action_values == action_values.max()))
@@ -74,6 +79,9 @@ class CartPoleWithTileC:
                 next_action = self.policy(next_tiles)
                 next_state_action_val = self.get_td_update_value(next_tiles, next_action)
                 self.model.update(cur_tiles, [reward + next_state_action_val * (1 - done)], cur_action)
+                if self.plan:
+                    self.planner.append(cur_tiles, cur_action, next_tiles, reward, done)
+                    self.model = self.planner.planning(self, self.model.copy())
                 cur_action = next_action
                 cur_state_action_val = next_state_action_val
                 cur_tiles = next_tiles
@@ -83,7 +91,8 @@ class CartPoleWithTileC:
                     self.data["epsilon"].append(self.epsilon)
                     self.data['episode_reward'].append(episode_reward)
                     self.data["mean_reward"].append(np.mean(self.data["episode_reward"]))
-                    print(f"Episode {i_episode} finished after {t + 1} timesteps with {episode_reward} reward, epsilon {self.epsilon}, mean reward {self.data['mean_reward'][-1]}")
+                    if not i_episode % 10:
+                        print(f"Episode {i_episode} finished after {t + 1} timesteps with {episode_reward} reward, epsilon {self.epsilon}, mean reward {self.data['mean_reward'][-1]}")
                     self.step_size = self.step_size * self.alpha_decay
                     self.epsilon = self.epsilon * self.epsilon_decay
                     break
@@ -109,16 +118,19 @@ class CartPoleWithTileC:
                 break
 
         
-def run_agent(config_path):
-    run_config = utils.load_config(config_path)
+def run_agent(run_config, config_path = None, test_agent = True):
     config = run_config["agent_params"]
-    run_params = run_config["run_params"]
+    save_params = run_config["save_params"]
     tile_coding_config = run_config["tile_coding_params"]
-    file_utils = utils.FileUtils(run_params["save_path"], run_params["name"])
-    file_utils.copy(config_path)
+    file_utils = utils.FileUtils(save_params["save_path"], save_params["name"])
+    if config_path:
+        file_utils.copy(config_path)
+    else:
+        file_utils.save_json(run_config, "config.json")
     cartpoleAgent = CartPoleWithTileC(config, tile_coding_config, file_utils)
     episode_rewards = cartpoleAgent.train()
-    cartpoleAgent.test(os.path.join(file_utils.run_path, 'regressors'))
+    if test_agent:
+        cartpoleAgent.test(os.path.join(file_utils.run_path, 'regressors'))
     env.close()
 
 
@@ -126,4 +138,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run agent based on config")
     parser.add_argument("--config", help='Path to configuration file specifying run parameters', required=True)
     args = parser.parse_args()
-    run_agent(args.config)
+    run_config = utils.load_config(args.config)
+    run_agent(run_config, args.config)

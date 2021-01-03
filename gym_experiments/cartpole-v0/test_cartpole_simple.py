@@ -103,6 +103,10 @@ class TestCartpoleTileCoder:
         assert math.isclose(model.run(self.expected_tiles_ob2, 1), expected_value)
 
 
+    def test_planning(self):
+        pass
+
+
 
 
 

@@ -5,6 +5,7 @@ import numpy as np
 import joblib
 from pathlib import Path
 import os
+import copy
 
 
 class sklearnSGD:
@@ -58,6 +59,11 @@ class sklearnSGD:
             os.mkdir(folder_path)
         for action, regressor in enumerate(self.regressors):
             joblib.dump(regressor, os.path.join(folder_path, f'action_value_regressor_{action}.{self.JOBLIB_EXT}'))
+
+    
+    def copy(self):
+        return copy.deepcopy(self)
+
 
 
 # class numpySGD:

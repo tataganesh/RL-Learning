@@ -34,6 +34,7 @@
 * [Challenges of real world reinforcement learning](https://www.youtube.com/watch?v=lrhzjCaRbvw&feature=youtu.be)
 * [An empirical investigation of the challenges ofreal-world reinforcement learning](https://arxiv.org/pdf/2003.11881.pdf)
 * [RL for Real Life](https://www.rl4rl.com/)
+* [Measuring the Reliability of Reinforcement Learning Algorithms](https://arxiv.org/pdf/1912.05663.pdf)
 
 ## Blogs
 * [NEURALNET.AI](https://www.neuralnet.ai/category/reinforcement-learning/)

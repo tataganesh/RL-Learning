@@ -39,3 +39,31 @@
 * Visualize results of a sweep
 
    ` python3 plotting.py --sweep_path=/home/tata/Learn/RL/RL-Learning/gym_experiments/cartpole-v0/sweeps/random_seed_sweep_qlearning_tilec `
+
+   ![](plots/qlearning_tilec_linearFA.png)
+
+   Sweep Configuration used to generate plot
+   ```
+   {
+	"params": {
+		"step_size": [0.1],
+		"epsilon": [0.1],
+		"random_seed": [200, 300, 3257, 4333, 2366, 1458, 1385, 268, 2705, 1263, 26],
+		"alpha_decay": [0.997],
+		"epsilon_decay": [0.999],
+		"num_episodes": [1000],
+		"td_update_algo": ["qlearning"]
+	},
+	"save_params": {
+		"save_path": "sweeps",
+		"name": "random_seed_sweep_qlearning_tilec"
+	},
+	"tile_coding_params": {
+		"low": [-3.4, -7, -1, -4],
+		"high": [3.4, 7, 1, 4],
+		"num_tilings": 16,
+		"num_tiles": 8,
+		"iht": 4096
+	}
+}
+   ```

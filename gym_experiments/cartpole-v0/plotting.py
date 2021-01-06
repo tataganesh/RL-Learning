@@ -64,6 +64,8 @@ def plot_sweep(sweep_path, save=False):
     # plt.fill_between(x, max_values, min_values)
     
     plt.title("Average reward for two-different groups of random seeds")
+    plt.xlabel("Episodes", fontsize=16)
+    plt.ylabel("Average Reward", fontsize=16)
     # plt.show()
     if save:
         plotting_utils.save("Episodes", "Average Reward", plt)

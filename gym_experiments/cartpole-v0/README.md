@@ -69,6 +69,7 @@
    ```
 
    ![Q Learning more Exploration](plots/qlearning_tilec_linearFA_morexp.png)
+   
    Sweep Configuration used to generate plot
    ```javascript
    {

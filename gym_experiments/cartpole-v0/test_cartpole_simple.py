@@ -1,12 +1,15 @@
+import math
+import shutil
+
 import pytest
 import numpy as np
 import gym
+
 from cartpole_qlearning import qLearning
 from cartpole_expectedSarsa import expectedSarsa
 import utils
-import shutil
 from SGD import sgd_factory
-import math
+
 env = gym.make('CartPole-v0')
 
 class TestCartpoleDescreteQLearning:

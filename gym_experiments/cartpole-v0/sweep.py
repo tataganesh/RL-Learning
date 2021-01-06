@@ -5,8 +5,8 @@ import itertools
 
 sweep_config = { 
     "params": {
-        "step_size": [0.1], 
-        "epsilon": [0.1],
+        "step_size": [1], 
+        "epsilon": [0.4],
         "random_seed": [200, 300, 3257, 4333, 2366, 1458, 1385, 268, 2705, 1263, 26],
         "alpha_decay": [0.997],
         "epsilon_decay": [0.999],
@@ -15,7 +15,7 @@ sweep_config = {
     },
     "save_params":{
         "save_path": "sweeps",
-        "name": "random_seed_sweep_qlearning_tilec"
+        "name": "random_seed_qlearning_tilec_high_eps"
     }
 }
 

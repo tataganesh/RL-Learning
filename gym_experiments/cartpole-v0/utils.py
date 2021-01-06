@@ -40,6 +40,7 @@ class FileUtils:
             os.mkdir(run_path)
         self.folder_path = folder_path
         self.run_path = run_path
+        self.run_name = run_name
     
     def save(self, data):
         for data_name, data_value in data.items():

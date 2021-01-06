@@ -1,13 +1,18 @@
+import os
+import argparse
+from collections import defaultdict
+import sys
+sys.path.append("../../helpers")
+
 import gym
 import numpy as np
-import argparse
 import matplotlib.pyplot as plt
-import utils
-from collections import defaultdict
-from SGD import sgd_factory
-import os
-env = gym.make('CartPole-v0')
+from log_setup import get_logger
 
+import utils
+from SGD import sgd_factory
+
+env = gym.make('CartPole-v0')
 
 class CartPoleWithTileC:
     SARSA = "sarsa"
@@ -38,6 +43,7 @@ class CartPoleWithTileC:
             planning_config = config["planning_config"]
             self.plan = True
             self.planner = utils.Replay(planning_config["buffer_size"], planning_config["sample_size"], planning_config["steps"], self.random_gen)
+        self.logger = get_logger(self.file_utils.run_name, os.path.join(self.file_utils.run_path, "cartpole_tile.log"))
 
     def argmax(self, action_values):
         return self.random_gen.choice(np.flatnonzero(action_values == action_values.max()))
@@ -92,12 +98,12 @@ class CartPoleWithTileC:
                     self.data['episode_reward'].append(episode_reward)
                     self.data["mean_reward"].append(np.mean(self.data["episode_reward"]))
                     if not i_episode % 10:
-                        print(f"Episode {i_episode} finished after {t + 1} timesteps with {episode_reward} reward, epsilon {self.epsilon}, mean reward {self.data['mean_reward'][-1]}")
+                        self.logger.info(f"Episode {i_episode} finished after {t + 1} timesteps with {episode_reward} reward, epsilon {self.epsilon}, mean reward {self.data['mean_reward'][-1]}")
                     self.step_size = self.step_size * self.alpha_decay
                     self.epsilon = self.epsilon * self.epsilon_decay
                     break
             
-        print(f"Average reward - {self.data['mean_reward'][-1]}")
+        self.logger.info(f"Average reward - {self.data['mean_reward'][-1]}")
         self.file_utils.save(self.data)
         self.model.save(os.path.join(self.file_utils.run_path, "regressors"))
         return self.data['episode_reward']

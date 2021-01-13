@@ -8,15 +8,58 @@
 
 
 
-## Linear Function Approximation with Tile Coding 
+## Linear Function Approximation with Tile Coding
 
 Q-Learning
+* Plot
+  ![Q Learning Plot](plots/qlearning_tilec_linearFA_randomseed200.png)
 
-![Q-Learning test gif](recordings/cartpole_qlearning.gif)
+* Config - 
+	```javascript
+	{
+		"agent_params" : {
+			"step_size": 0.1,
+			"epsilon": 0.1,
+			"random_seed": 200,
+			"alpha_decay": 0.997,
+			"epsilon_decay": 0.999, 
+			"num_episodes": 1000,
+			"td_update_algo": "qlearning"
+		},
+		"run_params": {
+			"save_path": "all_tilec_runs",
+			"name": "QLearning_optimal"
+		}
+	}
+	```
+
+* Test - ![Q-Learning test gif](recordings/cartpole_qlearning.gif)
 
 SARSA
 
-![SARSA test gif](recordings/cartpole_sarsa.gif)
+* Plot
+  ![SARSA Plot](plots/sarsa_tilec_linearFA_randomseed200.png)
+
+* Config - 
+	```javascript
+	{
+		"agent_params" : {
+			"step_size": 0.1,
+			"epsilon": 0.1,
+			"random_seed": 200,
+			"alpha_decay": 0.997,
+			"epsilon_decay": 0.999, 
+			"num_episodes": 1000,
+			"td_update_algo": "sarsa"
+		},
+		"run_params": {
+			"save_path": "all_tilec_runs",
+			"name": "SARSA_optimal"
+		}
+	}
+	```
+
+* Test - ![SARSA test gif](recordings/cartpole_sarsa.gif)
 
 
 

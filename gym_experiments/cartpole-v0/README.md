@@ -12,6 +12,7 @@
 
 Q-Learning
 * Plot
+
   ![Q Learning Plot](plots/qlearning_tilec_linearFA_randomseed200.png)
 
 * Config - 
@@ -33,11 +34,14 @@ Q-Learning
 	}
 	```
 
-* Test - ![Q-Learning test gif](recordings/cartpole_qlearning.gif)
+* Test - 
+
+	![Q-Learning test gif](recordings/cartpole_qlearning.gif)
 
 SARSA
 
 * Plot
+
   ![SARSA Plot](plots/sarsa_tilec_linearFA_randomseed200.png)
 
 * Config - 
@@ -59,7 +63,9 @@ SARSA
 	}
 	```
 
-* Test - ![SARSA test gif](recordings/cartpole_sarsa.gif)
+* Test - 
+	
+	![SARSA test gif](recordings/cartpole_sarsa.gif)
 
 
 
@@ -103,7 +109,7 @@ Sweep across Random Seeds for Q-Learning
 
    ![Q Learning more Exploration](plots/qlearning_tilec_linearFA_morexp.png)
    
-   Sweep Configuration used to generate plot
+   Sweep Configuration used to generate plot ( More exploration, larger step-size)
    ```javascript
    {
 	"params": {
